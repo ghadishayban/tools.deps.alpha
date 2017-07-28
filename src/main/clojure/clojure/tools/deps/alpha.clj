@@ -12,7 +12,8 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.providers :as providers])
   (:import
-    [clojure.lang PersistentQueue]))
+   [clojure.lang PersistentQueue]
+   [org.eclipse.aether.util.version GenericVersionScheme]))
 
 (defn- choose-provider
   [coord providers]
@@ -61,14 +62,18 @@
     {:mvn {:repos mvn/standard-repos}} true)
   )
 
-;; TODO - choose better
+(defn- version-compare
+  [v1 v2]
+  (let [gvs (GenericVersionScheme.)]
+    (compare (.parseVersion gvs v1) (.parseVersion gvs v2))))
+
 (defn- choose-coord
   [coord1 coord2]
   (if coord1
     (if coord2
       (let [v1 (:version coord1)
             v2 (:version coord2)]
-        (if (pos? (compare (str v1) (str v2)))
+        (if (pos? (version-compare (str v1) (str v2)))
           coord1
           coord2))
       coord1)
